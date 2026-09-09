@@ -90,12 +90,15 @@ fn test_rust_cargo_basedirs_cross_dir_cache_hit() -> Result<()> {
             .try_success()?;
     }
 
-    let dep_info = fs::read_dir(crate_b.join("target/debug/deps"))?
+    let dep_info = walkdir::WalkDir::new(crate_b.join("target/debug"))
+        .into_iter()
         .find_map(|entry| {
-            let path = entry.ok()?.path();
-            path.extension()
-                .is_some_and(|extension| extension == "d")
-                .then_some(path)
+            let path = entry.ok()?.into_path();
+            (path.extension().is_some_and(|extension| extension == "d")
+                && path.file_stem().is_some_and(|stem| {
+                    stem.as_encoded_bytes().starts_with(b"basedirs_test-")
+                }))
+            .then_some(path)
         })
         .context("missing dep-info for second checkout")?;
     let dep_info = fs::read_to_string(dep_info)?;

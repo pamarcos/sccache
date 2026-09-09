@@ -188,6 +188,7 @@ struct DepInfoTemplate {
     tail: String,
 }
 
+#[cfg_attr(windows, allow(clippy::permissions_set_readonly_false))]
 fn rewrite_dep_info_targets(
     dep_info: &Path,
     outputs: &HashMap<String, ArtifactDescriptor>,
